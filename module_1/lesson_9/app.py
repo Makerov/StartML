@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# task 7
 class User(BaseModel):
     name: str
     surname: str
@@ -29,8 +30,8 @@ def sum_date(current_date: date, offset: int):
     if isinstance(current_date, date) and isinstance(offset, int):
         return current_date + timedelta(days=offset)
 
-# task 7
+# task 8
 @app.post('/user/validate')
 def user_validate(user: User):
-    return "ok"
+    return f"Will add user: {user.name} {user.surname} with age {user.age}"
 
