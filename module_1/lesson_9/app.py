@@ -1,12 +1,16 @@
 from fastapi import FastAPI
 from datetime import date, timedelta
-# from pydantic import BaseModel
+from pydantic import BaseModel
 
 app = FastAPI()
 
-# class Validate(BaseModel):
-#     current_date: date
-#     offset: int
+class User(BaseModel):
+    name: str
+    surname: str
+    age: int
+    registration_date: date
+    class Config:
+        orm_mode = True
 
 # task 4
 @app.get('/')
@@ -24,4 +28,9 @@ def sum_date(current_date: date, offset: int):
     # валидация входных данных
     if isinstance(current_date, date) and isinstance(offset, int):
         return current_date + timedelta(days=offset)
+
+# task 7
+@app.post('/user/validate')
+def user_validate(user: User):
+    return "ok"
 
