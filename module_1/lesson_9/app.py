@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Depends
 from datetime import date, timedelta
 from pydantic import BaseModel
+from db_con import connection
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 app = FastAPI()
 
@@ -10,6 +13,13 @@ class User(BaseModel):
     surname: str
     age: int
     registration_date: date
+    class Config:
+        orm_mode = True
+
+class PostResponse(BaseModel):
+    id: int
+    text: str
+    topic: str
     class Config:
         orm_mode = True
 
@@ -35,3 +45,49 @@ def sum_date(current_date: date, offset: int):
 def user_validate(user: User):
     return f"Will add user: {user.name} {user.surname} with age {user.age}"
 
+
+# task 9 and 10
+def get_db():
+    conn = psycopg2.connect(
+        connection, 
+        cursor_factory=RealDictCursor  # курсор возвращает dict
+    )
+    return conn
+  
+@app.get('/user/{id}')
+def user_info(id: int, db=Depends(get_db)):
+    with db.cursor() as cursor:
+        sql_query = f'''
+            select
+                gender
+                , age
+                , city
+            from "user"
+            where id = {id}
+        '''
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        if result is None:
+            raise HTTPException(404, detail='user not found')
+        else:
+            return result
+
+
+# task 11
+@app.get('/post/{id}', response_model=PostResponse)
+def post_id(id: int, db=Depends(get_db)) -> PostResponse:
+    with db.cursor() as cursor:
+        sql_query = f'''
+            select
+                id
+                , text
+                , topic
+            from post
+            where id = {id}
+        '''
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        if result is None:
+            raise HTTPException(404, detail='not found')
+        else:
+            return result
